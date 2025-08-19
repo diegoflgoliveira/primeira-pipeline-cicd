@@ -20,7 +20,7 @@ jobs:
         context: ./src
         file: ./src/Dockerfile
         push: true
-        tags: | 
+        tags: |
           diego64/aula-primeira-pipeline:v${{ github.run_number }} 
           diego64/aula-primeira-pipeline:latest 
   CD:

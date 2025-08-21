@@ -1,7 +1,6 @@
 name: CI-CD
 on: 
   push:
-    branches: ["main"]
   workflow_dispatch:
 jobs:
   CI:
@@ -22,11 +21,34 @@ jobs:
         push: true
         tags: |
           diego64/aula-primeira-pipeline:v${{ github.run_number }} 
-          diego64/aula-primeira-pipeline:latest 
-  CD:
+          diego64/aula-primeira-pipeline:latest
+
+  CD-HOMOLOGACAO:
     needs: [CI]
     uses: diegoflgoliveira/primeira-pipeline-cicd/.github/workflows/deploy.yml@main
     with:
-      manifests: k8s/deployment.yaml
-      images: diego64/aula-primeira-pipeline:v${{ github.run_number }}
+      manifests: | 
+        k8s/deployment.yaml
+      images: | 
+        diego64/aula-primeira-pipeline:v${{ github.run_number }}
+      environment: homologacao
+    secrets: inherit
+
+  TEST:
+    needs: [CD-HOMOLOGACAO]
+    runs-on: ubuntu-latest
+    environment: homologacao
+    steps:
+      - name: Fake Test
+        run: "Fake test do ambiente ${{ vars.APP_NAMESPACE}}"
+
+  CD-PRODUCAO:
+    needs: [TEST]
+    uses: diegoflgoliveira/primeira-pipeline-cicd/.github/workflows/deploy.yml@main
+    with:
+      manifests: | 
+        k8s/deployment.yaml
+      images: | 
+        diego64/aula-primeira-pipeline:v${{ github.run_number }}
+      environment: producao
     secrets: inherit
